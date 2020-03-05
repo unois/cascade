@@ -43,7 +43,7 @@ An abstraction class for the Cascade Server by Hannon Hill
    ```
    $page = new Page(['base_uri'=>'https://mycmsdomain.com/',
       'username'=>'myusername',
-      'password'=>'mypassword',);
+      'password'=>'mypassword']);
    ```
 
 # Example
@@ -74,7 +74,7 @@ use Cascade\Site;
 try {
       echo "<pre>";
       $site = new Site();
-      $site->read('');
+      $site->read('sitename');
       echo $site->getId()."\n";
       echo "</pre>";
 } catch (Exception $e) {
