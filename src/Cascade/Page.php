@@ -84,7 +84,7 @@ class Page extends Base
             $siteName = $siteOrId;
         }
         try {
-            $this->asset = $this->readBase(parent::PAGE, $path, $siteName, $id);
+            $this->asset = $this->readBase(parent::PAGE, $siteName, $path, $id);
             return $this->asset;
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());

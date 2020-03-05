@@ -22,10 +22,8 @@ class Base
 
     public function __construct($configuration = null)
     {
-        $dotenv = Dotenv::createImmutable(__DIR__);
-        $dotenv->load();
-
         if ($configuration === null) {
+            $this->loadDotEnv(__DIR__.'/../../');
             $base_uri = getenv('CASCADE_BASE_URI');
             $username = getenv('CASCADE_USERNAME');
             $password = getenv('CASCADE_PASSWORD');
@@ -61,6 +59,45 @@ class Base
         $this->lastResponse = $this->client->edit($params)->editReturn;
 
         return $this->isLastResponseSuccess();
+    }
+
+    /**
+     * load dotenv.
+     *
+     * @param $path
+     *
+     * @throws Exception
+     */
+    private function loadDotEnv($path)
+    {
+        $requireParam = [
+            'CASCADE_BASE_URI', 'CASCADE_USERNAME', 'CASCADE_PASSWORD',
+        ];
+
+        // support for dotenv 1.x and 2.x.
+        if (class_exists('\Dotenv\Dotenv')) {
+            if (method_exists('\Dotenv\Dotenv', 'createImmutable')) {    // v4
+                $dotenv = \Dotenv\Dotenv::createImmutable($path);
+
+                $dotenv->safeLoad();
+                $dotenv->required($requireParam);
+            } elseif (method_exists('\Dotenv\Dotenv', 'create')) {    // v3
+                $dotenv = \Dotenv\Dotenv::create($path);
+ 
+                $dotenv->safeLoad();
+                $dotenv->required($requireParam);
+            } else {    // v2
+                $dotenv = new \Dotenv\Dotenv($path);
+
+                $dotenv->load();
+                $dotenv->required($requireParam);
+            }
+        } elseif (class_exists('\Dotenv')) {    // DotEnv v1
+            \Dotenv::load($path);
+            \Dotenv::required($requireParam);
+        } else {
+            throw new Exception('can not load PHP dotenv class.!');
+        }
     }
 
     private function checkAsset()
@@ -146,7 +183,7 @@ class Base
      * @return object
      * @throws exception
      */
-    protected function listSubscribersBase($type, $path = '', $siteName = '', $id = '')
+    protected function listSubscribersBase($type, $siteName = '', $path = '', $id = '')
     {
         $params = ['authentication' => $this->auth, 'identifier' => ['type' => $type, 'id' => $id, 'path' => ['path' => $path, 'siteName' => $siteName]]];
 
@@ -174,7 +211,7 @@ class Base
      *
      * @return boolean
      */
-    protected function publishBase($type, $path = '', $siteName = '', $id = '', $unpublish = false)
+    protected function publishBase($type, $siteName = '', $path = '', $id = '', $unpublish = false)
     {
         $params = ['authentication' => $this->auth,
             'publishInformation' => [
@@ -200,16 +237,25 @@ class Base
      *
      * @return boolean
      */
-    protected function readBase($type, $path = '', $siteName = '', $id = '')
+    protected function readBase($type, $siteName = '', $path = '', $id = '')
     {
         $params = ['authentication' => $this->auth, 'identifier' => ['type' => $type, 'id' => $id, 'path' => ['path' => $path, 'siteName' => $siteName]]];
 
         $this->lastResponse = $this->client->read($params)->readReturn;
 
         if ($this->isLastResponseSuccess($this->lastResponse)) {
+            $type = $this->translateReadResponseType($type);
             return $this->lastResponse->asset->{$type};
         } else {
             throw new \Exception(($this->lastResponse->message));
         }
+    }
+
+    private function translateReadResponseType($type) {
+        switch ($type) {
+            case self::ASSET_FACTORY_CONTAINER : $type = 'assetFactoryContainer'; break;
+            case self::ASSET_FACTORY           : $type = 'assetFactory'; break;
+        }
+        return $type;
     }
 }

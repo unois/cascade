@@ -40,7 +40,7 @@ class Site extends Base
     public function read($name, $id = '')
     {
         try {
-            $this->asset = $this->readBase(parent::SITE, $name, '', $id);
+            $this->asset = $this->readBase(parent::SITE, '', $name, $id);
             return $this->asset;
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
