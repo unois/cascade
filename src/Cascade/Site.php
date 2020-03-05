@@ -10,10 +10,11 @@ class Site extends Base
 
     /**
      * output all attributes of read site
-     * 
-     * @return void 
+     *
+     * @return void
      */
-    public function dump() {
+    public function dump()
+    {
         var_dump($this->asset);
     }
 
@@ -36,7 +37,7 @@ class Site extends Base
      * @return bool|void
      * @throws Exception
      */
-    public function read($name, $id)
+    public function read($name, $id = '')
     {
         try {
             $this->asset = $this->readBase(parent::SITE, $name, '', $id);
