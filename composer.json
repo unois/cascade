@@ -1,0 +1,23 @@
+{
+    "name" : "unois/cascade",
+    "description": "Cascade Server API client for PHP Users.",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Cascade\\": "src/Cascade"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Cascade\\Tests\\": ["tests/Cascade/Tests"]
+        }
+    },
+    "require": {
+        "php": "^7.0",
+        "ext-soap": "*",
+        "vlucas/phpdotenv": "^4.1"
+  	},
+    "require-dev": {
+        "phpunit/phpunit": "^5"
+	}
+}
