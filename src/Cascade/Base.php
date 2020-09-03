@@ -256,6 +256,7 @@ class Base
         switch ($type) {
             case self::ASSET_FACTORY_CONTAINER : $type = 'assetFactoryContainer'; break;
             case self::ASSET_FACTORY           : $type = 'assetFactory'; break;
+            case self::CONTENT_TYPE            : $type = 'contentType'; break;
         }
         return $type;
     }
