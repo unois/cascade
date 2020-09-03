@@ -236,7 +236,7 @@ class Base
      *
      * @link https://www.hannonhill.com/cascadecms/latest/developing-in-cascade/soap-web-services-api/soap-web-services-operations.html#ReadOperation
      *
-     * @return boolean
+     * @return object
      */
     protected function readBase($type, $siteName = '', $path = '', $id = '')
     {
