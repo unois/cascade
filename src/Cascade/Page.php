@@ -33,6 +33,16 @@ class Page extends Base
     }
 
     /**
+     * Helper to get value from dynamic metadata field
+     * @param string $node
+     * @return string
+     */
+    public function getDynamicMetatadataFieldValue($name)
+    {
+        return isset($this->getDynamicMetatadataField($name)->fieldValues->fieldValue->value) ? $this->getDynamicMetatadataField($name)->fieldValues->fieldValue->value : '';
+    }
+    
+    /**
      * Helper to get attribute from structured data node
      * @param string $node
      * @return mixed|false
@@ -71,7 +81,7 @@ class Page extends Base
      *
      * @param string $siteOrId
      * @param string $path
-     * @return bool|void
+     * @return object
      * @throws Exception
      */
     public function read($siteOrId, $path)
