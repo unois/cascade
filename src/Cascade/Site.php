@@ -19,6 +19,16 @@ class Site extends Base
     }
 
     /**
+     * edit site
+     *
+     * @return boolean
+     */
+    public function edit()
+    {
+        return $this->editBase(parent::SITE, $this->asset);
+    }
+    
+    /**
      * get all sites in cascade server
      *
      * @return array of all sites
@@ -41,6 +51,25 @@ class Site extends Base
     {
         try {
             $this->asset = $this->readBase(parent::SITE, '', $name, $id);
+            return $this->asset;
+        } catch (\Throwable $th) {
+            throw new Exception($th->getMessage());
+        }
+    }
+    
+    /**
+     * Rename site
+     *
+     * @param string $newName
+     * @param string $siteOrId
+     * @param string $path
+     * @return bool|void
+     * @throws Exception
+     */
+    public function rename($newName)
+    {
+        try {
+            $this->asset = $this->renameBase(parent::SITE, $newName, '', '', $this->asset->id);
             return $this->asset;
         } catch (\Throwable $th) {
             throw new Exception($th->getMessage());
