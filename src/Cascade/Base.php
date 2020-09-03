@@ -11,6 +11,7 @@ class Base
 
     public const ASSET_FACTORY_CONTAINER          = "assetfactorycontainer";
     public const ASSET_FACTORY                    = "assetfactory";
+    public const CONTENT_TYPE                     = "contenttype";
     public const DESTINATION                      = "destination";
     public const FILE                             = "file";
     public const FOLDER                           = "folder";
