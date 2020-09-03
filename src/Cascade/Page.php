@@ -84,7 +84,7 @@ class Page extends Base
      * @return object
      * @throws Exception
      */
-    public function read($siteOrId, $path)
+    public function read($siteOrId, $path = '')
     {
         if ($path == '') {
             $id = $siteOrId;
