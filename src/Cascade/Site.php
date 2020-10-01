@@ -35,8 +35,12 @@ class Site extends Base
      */
     public function getSites()
     {
-        $params = ['authentication' => $this->auth];
-        return $this->client->listSites($params)->listSitesReturn->sites->assetIdentifier;
+        if ($this->api_type == 'soap') {
+            $params = ['authentication' => $this->auth];
+            return $this->client->listSites($params)->listSitesReturn->sites->assetIdentifier;
+        } elseif ($this->api_type == 'rest') {
+            return json_decode($this->client->request('GET', 'listSites')->getBody()->getContents())->sites;
+        }
     }
 
     /**

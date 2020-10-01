@@ -24,9 +24,17 @@ class Page extends Base
      */
     public function getDynamicMetatadataField($name)
     {
-        foreach ($this->asset->metadata->dynamicFields->dynamicField as $key => $obj) {
-            if ($obj->name == $name) {
-                return $obj;
+        if ($this->api_type == 'soap') {
+            foreach ($this->asset->metadata->dynamicFields->dynamicField as $key => $obj) {
+                if ($obj->name == $name) {
+                    return $obj;
+                }
+            }
+        } elseif ($this->api_type == 'rest') {
+            foreach ($this->asset->metadata->dynamicFields as $key => $obj) {
+                if ($obj->name == $name) {
+                    return $obj;
+                }
             }
         }
         return false;
@@ -39,7 +47,11 @@ class Page extends Base
      */
     public function getDynamicMetatadataFieldValue($name)
     {
-        return isset($this->getDynamicMetatadataField($name)->fieldValues->fieldValue->value) ? $this->getDynamicMetatadataField($name)->fieldValues->fieldValue->value : '';
+        if ($this->api_type == 'soap') {
+            return isset($this->getDynamicMetatadataField($name)->fieldValues->fieldValue->value) ? $this->getDynamicMetatadataField($name)->fieldValues->fieldValue->value : '';
+        } elseif ($this->api_type == 'rest') {
+            return isset($this->getDynamicMetatadataField($name)->fieldValues[0]->value) ? $this->getDynamicMetatadataField($name)->fieldValues[0]->value : '';
+        }
     }
     
     /**
@@ -49,9 +61,17 @@ class Page extends Base
      */
     public function getStructuredDataNode($node)
     {
-        foreach ($this->asset->structuredData->structuredDataNodes->structuredDataNode as $key => $obj) {
-            if ($obj->identifier == $node) {
-                return $obj;
+        if ($this->api_type == 'soap') {
+            foreach ($this->asset->structuredData->structuredDataNodes->structuredDataNode as $key => $obj) {
+                if ($obj->identifier == $node) {
+                    return $obj;
+                }
+            }
+        } elseif ($this->api_type == 'rest') {
+            foreach ($this->asset->structuredData->structuredDataNodes as $key => $obj) {
+                if ($obj->identifier == $node) {
+                    return $obj;
+                }
             }
         }
         return false;
@@ -110,10 +130,19 @@ class Page extends Base
      */
     public function setDynamicMetatadataFieldValue($name, $value)
     {
-        foreach ($this->asset->metadata->dynamicFields->dynamicField as $key => $obj) {
-            if ($obj->name == $name) {
-                $this->asset->metadata->dynamicFields->dynamicField[ $key ]->fieldValues->fieldValue->value = $value;
-                return true;
+        if ($this->api_type == 'soap') {
+            foreach ($this->asset->metadata->dynamicFields->dynamicField as $key => $obj) {
+                if ($obj->name == $name) {
+                    $this->asset->metadata->dynamicFields->dynamicField[ $key ]->fieldValues->fieldValue->value = $value;
+                    return true;
+                }
+            }
+        } elseif ($this->api_type == 'rest') {
+            foreach ($this->asset->metadata->dynamicFields as $key => $obj) {
+                if ($obj->name == $name) {
+                    $this->asset->metadata->dynamicFields[ $key ]->fieldValues[0]->value = $value;
+                    return true;
+                }
             }
         }
         return false;

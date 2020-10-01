@@ -3,11 +3,13 @@ namespace Cascade;
 
 use Exception;
 use Dotenv\Dotenv;
+use stdClass;
 
 class Base
 {
     protected $client;
     protected $auth;
+    protected $api_type;
 
     public const ASSET_FACTORY_CONTAINER          = "assetfactorycontainer";
     public const ASSET_FACTORY                    = "assetfactory";
@@ -28,17 +30,30 @@ class Base
             $base_uri = getenv('CASCADE_BASE_URI');
             $username = getenv('CASCADE_USERNAME');
             $password = getenv('CASCADE_PASSWORD');
+            $this->api_type = null !== getenv('API_TYPE') ? getenv('API_TYPE') : 'soap';
         } else {
             $base_uri = $configuration['base_uri'];
             $username = $configuration['username'];
             $password = $configuration['password'];
+            $this->api_type = isset($configuration['api_type']) ? $configuration['api_type'] : 'soap';
         }
-        $soapURL = $base_uri."ws/services/AssetOperationService?wsdl";
-        $this->client = new \SoapClient(
-            $soapURL,
-            ['trace' => 1, 'location' => str_replace('?wsdl', '', $soapURL)]
-        );
-        $this->auth = ['username' => $username, 'password' => $password ];
+        if ($this->api_type == 'soap') {
+            //For SOAP
+            $soapURL = $base_uri."ws/services/AssetOperationService?wsdl";
+            $this->client = new \SoapClient(
+                $soapURL,
+                ['trace' => 1, 'location' => str_replace('?wsdl', '', $soapURL)]
+            );
+            $this->auth = ['username' => $username, 'password' => $password ];
+        } elseif ($this->api_type == 'rest') {
+            //For Rest
+            $this->client = new \GuzzleHttp\Client([
+                'base_uri' => $base_uri.'api/v1/',
+                'auth' => [$configuration['username'], $configuration['password']],
+            ]);
+        } else {
+            die("Please define either 'soap' or 'rest' as the api type *{$this->api_type}*\n");
+        }
     }
 
     /**
@@ -51,15 +66,29 @@ class Base
      */
     protected function editBase($type, $data)
     {
-        $params = ['authentication' => $this->auth,
-            'asset' => [
-                $type =>  $data,
-            ]
-        ];
+        if ($this->api_type == 'soap') {
+            $params = ['authentication' => $this->auth,
+                'asset' => [
+                    $type =>  $data,
+                ]
+            ];
 
-        $this->lastResponse = $this->client->edit($params)->editReturn;
+            $this->lastResponse = $this->client->edit($params)->editReturn;
 
-        return $this->isLastResponseSuccess();
+            return $this->isLastResponseSuccess();
+        } elseif ($this->api_type == 'rest') {
+            $t = new \stdClass();
+            $t->asset = new \stdClass();
+            $t->asset->{$type} = $data;
+            $response = $this->client->request('POST', 'edit', ['body' => json_encode($t)]);
+            $this->lastResponse = json_decode($response->getBody()->getContents());
+
+            if ($this->lastResponse->success) {
+                return $this->lastResponse->asset->{$type};
+            } else {
+                throw new \Exception(($this->lastResponse->message));
+            }
+        }
     }
 
     /**
@@ -186,18 +215,30 @@ class Base
      */
     protected function listSubscribersBase($type, $siteName = '', $path = '', $id = '')
     {
-        $params = ['authentication' => $this->auth, 'identifier' => ['type' => $type, 'id' => $id, 'path' => ['path' => $path, 'siteName' => $siteName]]];
+        if ($this->api_type == 'soap') {
+            $params = ['authentication' => $this->auth, 'identifier' => ['type' => $type, 'id' => $id, 'path' => ['path' => $path, 'siteName' => $siteName]]];
 
-        $this->lastResponse = $this->client->listSubscribers($params)->listSubscribersReturn;
+            $this->lastResponse = $this->client->listSubscribers($params)->listSubscribersReturn;
 
-        if ($this->isLastResponseSuccess()) {
-            if (isset($this->lastResponse->subscribers->assetIdentifier)) {
-                return $this->lastResponse->subscribers->assetIdentifier;
+            if ($this->isLastResponseSuccess()) {
+                if (isset($this->lastResponse->subscribers->assetIdentifier)) {
+                    return $this->lastResponse->subscribers->assetIdentifier;
+                } else {
+                    return [];
+                }
             } else {
-                return [];
+                throw new \Exception(($this->lastResponse->message));
             }
-        } else {
-            throw new \Exception(($this->lastResponse->message));
+        } elseif ($this->api_type == 'rest') {
+            $method = 'listSubscribers/'.$type.'/'.$this->generateRestfulUri($siteName, $path, $id);
+
+            $response = $this->client->request('GET', $method);
+            $this->lastResponse = json_decode($response->getBody()->getContents());
+            if ($this->lastResponse->success) {
+                return $this->lastResponse->subscribers;
+            } else {
+                throw new \Exception(($this->lastResponse->message));
+            }
         }
     }
 
@@ -214,16 +255,26 @@ class Base
      */
     protected function publishBase($type, $siteName = '', $path = '', $id = '', $unpublish = false)
     {
-        $params = ['authentication' => $this->auth,
-            'publishInformation' => [
-                'identifier' => ['type' => $type, 'id' => $id, 'path' => ['path' => $path, 'siteName' => $siteName]],
-                'unpublish' => $unpublish
-            ]
-        ];
+        if ($this->api_type == 'soap') {
+            $params = ['authentication' => $this->auth,
+                'publishInformation' => [
+                    'identifier' => ['type' => $type, 'id' => $id, 'path' => ['path' => $path, 'siteName' => $siteName]],
+                    'unpublish' => $unpublish
+                ]
+            ];
+            $this->lastResponse = $this->client->publish($params)->publishReturn;
+            return $this->isLastResponseSuccess();
+        } elseif ($this->api_type == 'rest') {
+            $method = 'publish/'.$type.'/'.$this->generateRestfulUri($siteName, $path, $id);
+            $response = $this->client->request('GET', $method);
+            $this->lastResponse = json_decode($response->getBody()->getContents());
 
-        $this->lastResponse = $this->client->publish($params)->publishReturn;
-
-        return $this->isLastResponseSuccess();
+            if ($this->lastResponse->success) {
+                return true;
+            } else {
+                throw new \Exception(($this->lastResponse->message));
+            }
+        }
     }
 
     /**
@@ -240,16 +291,46 @@ class Base
      */
     protected function readBase($type, $siteName = '', $path = '', $id = '')
     {
-        $params = ['authentication' => $this->auth, 'identifier' => ['type' => $type, 'id' => $id, 'path' => ['path' => $path, 'siteName' => $siteName]]];
+        if ($this->api_type == 'soap') {
+            $params = ['authentication' => $this->auth, 'identifier' => ['type' => $type, 'id' => $id, 'path' => ['path' => $path, 'siteName' => $siteName]]];
 
-        $this->lastResponse = $this->client->read($params)->readReturn;
+            $this->lastResponse = $this->client->read($params)->readReturn;
+    
+            if ($this->isLastResponseSuccess($this->lastResponse)) {
+                $type = $this->translateReadResponseType($type);
+                return $this->lastResponse->asset->{$type};
+            } else {
+                throw new \Exception(($this->lastResponse->message));
+            }
+        } elseif ($this->api_type == 'rest') {
+            $method = 'read/'.$type.'/'.$this->generateRestfulUri($siteName, $path, $id);
+            $response = $this->client->request('GET', $method);
+            $this->lastResponse = json_decode($response->getBody()->getContents());
 
-        if ($this->isLastResponseSuccess($this->lastResponse)) {
-            $type = $this->translateReadResponseType($type);
-            return $this->lastResponse->asset->{$type};
-        } else {
-            throw new \Exception(($this->lastResponse->message));
+            if ($this->lastResponse->success) {
+                return $this->lastResponse->asset->{$type};
+            } else {
+                throw new \Exception(($this->lastResponse->message));
+            }
         }
+
+    }
+
+    /**
+     * Helper function for restful uri's
+     * @param mixed $siteName 
+     * @param mixed $path 
+     * @param mixed $id 
+     * @return string 
+     */
+    private function generateRestfulUri($siteName, $path, $id) {
+        $uri='';
+        if ($id <> '') {
+            $uri.=$id;
+        } else {
+            $uri.=$siteName.'/'.$path;
+        }
+        return $uri;
     }
 
     private function translateReadResponseType($type) {
