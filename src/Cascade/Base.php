@@ -313,17 +313,17 @@ class Base
                 throw new \Exception(($this->lastResponse->message));
             }
         }
-
     }
 
     /**
      * Helper function for restful uri's
-     * @param mixed $siteName 
-     * @param mixed $path 
-     * @param mixed $id 
-     * @return string 
+     * @param mixed $siteName
+     * @param mixed $path
+     * @param mixed $id
+     * @return string
      */
-    private function generateRestfulUri($siteName, $path, $id) {
+    private function generateRestfulUri($siteName, $path, $id)
+    {
         $uri='';
         if ($id <> '') {
             $uri.=$id;
@@ -333,11 +333,12 @@ class Base
         return $uri;
     }
 
-    private function translateReadResponseType($type) {
+    private function translateReadResponseType($type)
+    {
         switch ($type) {
-            case self::ASSET_FACTORY_CONTAINER : $type = 'assetFactoryContainer'; break;
-            case self::ASSET_FACTORY           : $type = 'assetFactory'; break;
-            case self::CONTENT_TYPE            : $type = 'contentType'; break;
+            case self::ASSET_FACTORY_CONTAINER: $type = 'assetFactoryContainer'; break;
+            case self::ASSET_FACTORY: $type = 'assetFactory'; break;
+            case self::CONTENT_TYPE: $type = 'contentType'; break;
         }
         return $type;
     }
