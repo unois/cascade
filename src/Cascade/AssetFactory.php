@@ -18,6 +18,16 @@ class AssetFactory extends Base
     }
 
     /**
+     * edit asset factory
+     *
+     * @return boolean
+     */
+    public function edit()
+    {
+        return $this->editBase(parent::ASSET_FACTORY, $this->asset);
+    }
+
+    /**
      * Read in asset factory
      *
      * @param string $siteOrId
