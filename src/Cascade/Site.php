@@ -48,7 +48,7 @@ class Site extends Base
      *
      * @param string $siteOrId
      * @param string $path
-     * @return bool|void
+     * @return object
      * @throws Exception
      */
     public function read($name, $id = '')
