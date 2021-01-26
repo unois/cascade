@@ -13,9 +13,9 @@
         }
     },
     "require": {
-        "php": "^7.0",
+        "php": "^7.2",
         "ext-soap": "*",
-        "guzzlehttp/guzzle": "^7.0",
+        "guzzlehttp/guzzle": "^7",
         "vlucas/phpdotenv": "~1.0|~2.0|^3.0|^4.0"
   	},
     "require-dev": {
