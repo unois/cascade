@@ -146,10 +146,28 @@ class Page extends Base
     public function setDynamicMetatadataFieldValue($name, $value)
     {
         if ($this->api_type == 'soap') {
-            foreach ($this->asset->metadata->dynamicFields->dynamicField as $key => $obj) {
-                if ($obj->name == $name) {
-                    $this->asset->metadata->dynamicFields->dynamicField[ $key ]->fieldValues->fieldValue->value = $value;
-                    return true;
+            if (is_array($value)) {
+                foreach ($this->asset->metadata->dynamicFields->dynamicField as $key => $obj) {
+                    if ($obj->name == $name) {
+                        //Remove all old values first if they exist
+                        $this->asset->metadata->dynamicFields->dynamicField[ $key ]->fieldValues->fieldValue = [];
+                        $i = 0;
+                        if (count($value)) {
+                            foreach ($value as $v) {
+                                $this->asset->metadata->dynamicFields->dynamicField[ $key ]->fieldValues->fieldValue[ $i ] = new \stdClass;
+                                $this->asset->metadata->dynamicFields->dynamicField[ $key ]->fieldValues->fieldValue[ $i ]->value = $v;
+                                $i++;
+                            }
+                        }
+                        return true;
+                    }
+                }
+            } else {
+                foreach ($this->asset->metadata->dynamicFields->dynamicField as $key => $obj) {
+                    if ($obj->name == $name) {
+                        $this->asset->metadata->dynamicFields->dynamicField[ $key ]->fieldValues->fieldValue->value = $value;
+                        return true;
+                    }
                 }
             }
         } elseif ($this->api_type == 'rest') {
@@ -161,5 +179,42 @@ class Page extends Base
             }
         }
         return false;
+    }
+    
+    /**
+     * setStructuredDataNode lots of work to do on this one, quick fix to set text only values for now
+     *
+     * @param  string $name
+     * @param  string $value
+     * @return boolean
+     */
+    public function setStructuredDataNode($name, $value)
+    {
+        $parts = explode(';', $name);
+        $keyParts = [];
+        $sdn = $this->asset->structuredData->structuredDataNodes->structuredDataNode;
+        foreach ($parts as $keyPart => $part) {
+            foreach ($sdn as $key => $obj) {
+                if ($obj->identifier == $part) {
+                    $keyParts[ $keyPart ] = $key;
+                    if (($keyPart + 1) != count($parts)) {
+                        $sdn = $obj->structuredDataNodes->structuredDataNode;
+                    }
+                }
+            }
+        }
+        //This has to be able to be cleaned up, but my brain is tired
+        if (count($parts) == 1) {
+            $this->asset->structuredData->structuredDataNodes->structuredDataNode[ $keyParts[0] ]->text = $value;
+        } elseif (count($parts) == 2) {
+            $this->asset->structuredData->structuredDataNodes->structuredDataNode[ $keyParts[0] ]->structuredDataNodes->structuredDataNode[ $keyParts[1] ]->text = $value;
+        } elseif (count($parts) == 3) {
+            die("Not yet implemented (3)");
+        } elseif (count($parts) == 4) {
+            die("Not yet implemented (4)");
+        } elseif (count($parts) == 5) {
+            die("Not yet implemented (5)");
+        }
+        return true;
     }
 }
