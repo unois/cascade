@@ -17,6 +17,7 @@ class Base
     public const DESTINATION                      = "destination";
     public const FILE                             = "file";
     public const FOLDER                           = "folder";
+    public const METADATA_SET                     = "metadataset";
     public const PAGE                             = "page";
     public const PUBLISH_SET                      = "publishset";
     public const PUBLISH_SET_CONTAINER            = "publishsetcontainer";
