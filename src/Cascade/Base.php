@@ -57,6 +57,52 @@ class Base
     }
 
     /**
+     * copy
+     *
+     * @param  string       $type                     Type defined in wsdl
+     * @param  string       $destinationContainerType Type defined in wsdl
+     * @param  string       $destinationContainerSiteName
+     * @param  string       $destinationContainerPath
+     * @param  string       $siteName
+     * @param  string       $path
+     * @param  string       $newName
+     *
+     * @return boolean
+     */
+    protected function copyBase($type, $destinationContainerType, $siteName, $path, $destinationContainerSiteName, $destinationContainerPath, $newName)
+    {
+        $params = [
+            'authentication' => $this->auth,
+            'identifier' => [
+                'path' => [
+                    'path' => $path,
+                    'siteName' => $siteName,
+                ],
+                'type' => $type,
+            ],
+            'copyParameters' => [
+                'destinationContainerIdentifier' =>  [
+                    'path' => [
+                        'path' => $destinationContainerPath,
+                        'siteName' => $destinationContainerSiteName,
+                    ],
+                    'type' => $destinationContainerType,
+                ],
+                'doWorkflow' => false,
+                'newName' => $newName,
+            ]
+        ];
+
+        if ($this->api_type == 'soap') {
+            $this->lastResponse = $this->client->copy($params)->copyReturn;
+
+            return $this->isLastResponseSuccess();
+        } elseif ($this->api_type == 'rest') {
+            die("You must use soap for now to enable this method.\n");
+        }
+    }
+
+    /**
      * edit
      *
      * @param  string       $type         Type defined in wsdl
@@ -308,6 +354,7 @@ class Base
             $this->lastResponse = json_decode($response->getBody()->getContents());
 
             if ($this->lastResponse->success) {
+                $type = $this->translateReadResponseType($type);
                 return $this->lastResponse->asset->{$type};
             } else {
                 throw new \Exception(($this->lastResponse->message));

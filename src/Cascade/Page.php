@@ -8,6 +8,21 @@ class Page extends Base
     public $asset;
 
     /**
+     * copy page from sitename and path to destination folder
+     *
+     * @param  string $siteName
+     * @param  string $path
+     * @param  string $destinationContainerSiteName
+     * @param  string $destinationContainerPath
+     * @param  string $newName
+     * @return boolean
+     */
+    public function copy($siteName, $path, $destinationContainerSiteName, $destinationContainerPath, $newName)
+    {
+        return $this->copyBase(parent::PAGE, parent::FOLDER, $siteName, $path, $destinationContainerSiteName, $destinationContainerPath, $newName);
+    }
+
+    /**
      * edit page
      *
      * @return boolean
