@@ -387,6 +387,7 @@ class Base
             case self::ASSET_FACTORY_CONTAINER: $type = 'assetFactoryContainer'; break;
             case self::ASSET_FACTORY: $type = 'assetFactory'; break;
             case self::CONTENT_TYPE: $type = 'contentType'; break;
+            case self::METADATA_SET: $type = 'metadataSet'; break;
         }
         return $type;
     }
